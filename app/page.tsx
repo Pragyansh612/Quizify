@@ -35,11 +35,10 @@ export default function Quiz() {
   const [score, setScore] = useState(0)
   const [showResults, setShowResults] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [fetchError, setfetchError] = useState<string | null>(null)
   const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: number }>({})
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
   const [quizStarted, setQuizStarted] = useState(false)
-  const [streak, setStreak] = useState(0)
   const [highScore, setHighScore] = useState(0)
   const [showDetailedSolutions, setShowDetailedSolutions] = useState(false)
 
@@ -77,7 +76,8 @@ export default function Quiz() {
       setQuizData(data)
       setLoading(false)
     } catch (error) {
-      setError("Failed to load quiz data. Please try again later.")
+      console.log(error)
+      setfetchError("Failed to load quiz data. Please try again later.")
       setLoading(false)
     }
   }
@@ -105,10 +105,8 @@ export default function Quiz() {
 
     if (selectedOption?.is_correct) {
       setScore(prev => prev + Number(quizData.correct_answer_marks))
-      setStreak(prev => prev + 1)
     } else {
       setScore(prev => prev - Number(quizData.negative_marks))
-      setStreak(0)
     }
   }
 
@@ -153,7 +151,6 @@ export default function Quiz() {
     setScore(0)
     setShowResults(false)
     setSelectedAnswers({})
-    setStreak(0)
     setQuizStarted(false)
     if (quizData) {
       setTimeRemaining(quizData.duration * 60)
@@ -170,10 +167,10 @@ export default function Quiz() {
     )
   }
 
-  if (error || !quizData) {
+  if (fetchError || !quizData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="text-red-500 text-2xl text-center">{error || "Quiz data not available"}</div>
+        <div className="text-red-500 text-2xl text-center">{fetchError || "Quiz data not available"}</div>
       </div>
     )
   }
@@ -281,8 +278,6 @@ export default function Quiz() {
             >
               {quizData.questions.map((question, index) => {
                 const userAnswer = selectedAnswers[question.id]
-                const correctOption = question.options.find(opt => opt.is_correct)
-                const userCorrect = correctOption?.id === userAnswer
 
                 return (
                   <div key={question.id} className="bg-white/50 p-6 rounded-xl">
@@ -333,9 +328,6 @@ export default function Quiz() {
                     ⏱️ {formatTime(timeRemaining)}
                   </div>
                 )}
-              </div>
-              <div className="flex justify-between items-center bg-white/50 p-4 rounded-lg">
-                <div className="text-gray-800 font-semibold">Score: {score}</div>
               </div>
             </div>
 
